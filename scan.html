@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+    <meta name="description" content="Student QR attendance scanner for Attend Ease">
+    <meta name="theme-color" content="#0f172a">
+    <title>Student Scanner | Attend Ease</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="assets/css/style.css?v=1.0.0">
+</head>
+<body>
+    <nav class="navbar" role="navigation" aria-label="Main navigation">
+        <div class="nav-brand">
+            <a href="index.php">Attend Ease</a>
+        </div>
+        <button class="nav-toggle" type="button" aria-label="Toggle navigation menu" aria-expanded="false" onclick="toggleNav()">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+            </svg>
+        </button>
+        <ul class="nav-links" id="nav-menu">
+            <li><a href="index.php">Home</a></li>
+            <li><a href="scan.html">Student Portal</a></li>
+            <li><a href="admin.php">Admin Portal</a></li>
+            <li><a href="reports/view.php">Reports</a></li>
+        </ul>
+    </nav>
+
+    <main class="main-content">
+        <div class="container">
+            <h1 class="page-title">Student Attendance Scanner</h1>
+            <p class="page-subtitle">Scan your session QR code to record attendance instantly</p>
+            
+            <div class="scanner-container">
+                <section class="card scanner-card card-featured">
+                    <h2>Scan QR Code</h2>
+                    <p class="scanner-instructions">Point your camera at the session QR code displayed by your instructor to record your attendance.</p>
+                    
+                    <div id="reader"></div>
+                    
+                    <div id="scan-result" class="scan-result hidden" role="status" aria-live="polite">
+                        <div class="result-icon" aria-hidden="true">&#10003;</div>
+                        <h3>Attendance Recorded!</h3>
+                        <p id="result-message"></p>
+                    </div>
+                    
+                    <div id="scan-error" class="scan-result error hidden" role="alert" aria-live="assertive">
+                        <div class="result-icon" aria-hidden="true">&#10007;</div>
+                        <h3>Scan Failed</h3>
+                        <p id="error-message"></p>
+                    </div>
+                </section>
+                
+                <section class="card info-card">
+                    <h2>How It Works</h2>
+                    <ol class="steps-list">
+                        <li>Allow camera access when prompted</li>
+                        <li>Point your camera at the QR code</li>
+                        <li>Hold steady until the code is detected</li>
+                        <li>Your attendance will be recorded automatically</li>
+                    </ol>
+                    
+                    <div class="manual-entry">
+                        <h3>Manual Entry</h3>
+                        <p>If scanning doesn't work, enter the session code manually:</p>
+                        <form id="manual-form" novalidate>
+                            <div class="form-group">
+                                <label for="manual-code">Session Code</label>
+                                <input type="text" id="manual-code" placeholder="Enter session code" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="student-id">Your Student ID</label>
+                                <input type="text" id="student-id" placeholder="Your Student ID" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="student-name">Your Name <span class="form-hint">(optional)</span></label>
+                                <input type="text" id="student-name" placeholder="Your Name">
+                            </div>
+                            <button type="submit" id="manual-submit" class="btn btn-student btn-block">Submit Attendance</button>
+                        </form>
+                    </div>
+                </section>
+            </div>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <p><strong>Attend Ease</strong> &mdash; Smart Attendance System</p>
+        <p>BS Information Technology Capstone Project</p>
+    </footer>
+
+    <script>
+        function toggleNav() {
+            const menu = document.getElementById('nav-menu');
+            const toggle = document.querySelector('.nav-toggle');
+            const isOpen = menu.classList.toggle('open');
+            toggle.setAttribute('aria-expanded', isOpen);
+        }
+        document.addEventListener('click', function(e) {
+            const nav = document.querySelector('.navbar');
+            const menu = document.getElementById('nav-menu');
+            if (!nav.contains(e.target) && menu.classList.contains('open')) {
+                menu.classList.remove('open');
+                document.querySelector('.nav-toggle').setAttribute('aria-expanded', 'false');
+            }
+        });
+    </script>
+    <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js" crossorigin="anonymous"></script>
+    <script src="assets/js/scanner.js?v=1.0.0"></script>
+</body>
+</html>
+

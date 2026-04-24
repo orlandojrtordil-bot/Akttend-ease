@@ -1,0 +1,14 @@
+[
+    {
+        "username": "Orland",
+        "password_hash": "$2y$12$7ACiy8aCGKqmLYgHbHh5y.4acOLqvINbD91t20L97JbHrU5OvpDkC",
+        "email": "octordil@donbosco.ph.edu",
+        "student_id": "2023-0137",
+        "full_name": "Orlando Jr C. Tordil",
+        "section": "BSIT-3E",
+        "year_level": "3rd Year",
+        "role": "student",
+        "id": 1,
+        "created_at": "2026-04-24 07:30:54"
+    }
+]
