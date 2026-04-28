@@ -9,6 +9,7 @@ require_once __DIR__ . '/config.php';
 
 $pageTitle = APP_NAME . ' | Location-Verified Attendance';
 $basePath = '';
+$pageCss = 'home';
 
 include 'includes/header.php';
 ?>
@@ -26,15 +27,21 @@ include 'includes/header.php';
         <div class="card-container">
             <?php if (!isLoggedIn()): ?>
             <div class="card card-featured">
-                <h3>Student Access</h3>
+                <h3>&#127891; Student Access</h3>
                 <p>Log in to check in with GPS geofencing, scan QR codes, and track your attendance securely.</p>
-                <a href="Registration/login.php" class="btn btn-admin btn-block">Log In as Student</a>
+                <a href="student/login.php" class="btn btn-student btn-block">Log In as Student</a>
+                <p style="margin-top:0.75rem;font-size:0.875rem;">
+                    <a href="student/register.php" style="color:var(--midnight);">New student? Sign up</a>
+                </p>
             </div>
 
             <div class="card card-featured">
-                <h3>Teacher Access</h3>
+                <h3>&#127979; Teacher Access</h3>
                 <p>Administrators can manage geofenced locations, create sessions, and monitor attendance in real time.</p>
-                <a href="Registration/login.php" class="btn btn-admin btn-block">Log In as Teacher</a>
+                <a href="teacher/login.php" class="btn btn-admin btn-block">Log In as Teacher</a>
+                <p style="margin-top:0.75rem;font-size:0.875rem;">
+                    <a href="teacher/register.php" style="color:var(--midnight);">New teacher? Sign up</a>
+                </p>
             </div>
             <?php elseif (isStudent()): ?>
             <div class="card card-featured">
@@ -66,7 +73,7 @@ include 'includes/header.php';
         <?php if (!isLoggedIn()): ?>
         <div style="text-align: center; margin-top: 2.5rem;">
             <p style="color: var(--slate-navy); font-size: 0.9375rem;">
-                New to Attend Ease? <a href="Registration/register.php" style="color: var(--midnight); font-weight: 600;">Create an account</a>
+                New to Attend Ease? <a href="student/register.php" style="color: var(--midnight); font-weight: 600;">Create a student account</a> or <a href="teacher/register.php" style="color: var(--midnight); font-weight: 600;">teacher account</a>
             </p>
         </div>
         <?php endif; ?>

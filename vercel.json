@@ -1,0 +1,27 @@
+{
+  "version": 2,
+  "name": "attend-ease",
+  "builds": [
+    {
+      "src": "api/**/*.php",
+      "use": "@vercel/php@0.5.2"
+    },
+    {
+      "src": "**/*.php",
+      "use": "@vercel/php@0.5.2"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/assets/(.*)",
+      "dest": "/assets/$1",
+      "headers": {
+        "Cache-Control": "public, max-age=31536000, immutable"
+      }
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/$1"
+    }
+  ]
+}

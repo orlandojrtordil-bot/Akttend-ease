@@ -1,10 +1,10 @@
 <?php
 /**
  * Attend Ease - Database Connection (MySQLi)
- * 
+ *
  * Uses MySQLi with prepared statements for security.
  * Provides a PDO-like API via helper functions.
- * 
+ *
  * @package AttendEase
  * @version 1.0.0
  */
@@ -28,19 +28,42 @@ $mysqli = new mysqli($dbHost, $dbUser, $dbPass, $dbName);
 // Check connection
 if ($mysqli->connect_error) {
     error_log("Database connection failed: " . $mysqli->connect_error);
-    die("<div style='text-align:center;padding:2rem;font-family:sans-serif;'>
-        <h2>Database Connection Failed</h2>
-        <p>Please ensure MySQL is running and the <code>attend_ease</code> database exists.</p>
-        <p><a href='test_db.php' style='color:#102E4A;font-weight:600;'>Run Diagnostics</a></p>
-    </div>");
+    if (defined('APP_ENV') && APP_ENV === 'development') {
+        die("<div style='text-align:center;padding:2rem;font-family:sans-serif;'>
+            <h2>Database Connection Failed</h2>
+            <p>Please ensure MySQL is running and the <code>attend_ease</code> database exists.</p>
+        </div>");
+    } else {
+        http_response_code(500);
+        die("<div style='text-align:center;padding:2rem;font-family:sans-serif;'>
+            <h2>System Temporarily Unavailable</h2>
+            <p>We're experiencing technical difficulties. Please try again later.</p>
+        </div>");
+    }
 }
 
-// Set charset
-$mysqli->set_charset($dbCharset);
+// Set charset and collation to match table definitions
+$mysqli->query("SET NAMES utf8mb4 COLLATE utf8mb4_unicode_ci");
+
+// Fix collation on existing tables (safe to run every time)
+$mysqli->query("SET FOREIGN_KEY_CHECKS = 0");
+$fixCollations = [
+    "ALTER TABLE sessions CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci",
+    "ALTER TABLE attendance CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci",
+    "ALTER TABLE users CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci",
+    "ALTER TABLE locations CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci",
+    "ALTER TABLE device_bindings CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci",
+    "ALTER TABLE geo_attendance CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci",
+    "ALTER TABLE audit_logs CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci",
+];
+foreach ($fixCollations as $sql) {
+    $mysqli->query($sql);
+}
+$mysqli->query("SET FOREIGN_KEY_CHECKS = 1");
 
 /**
  * Execute a prepared SELECT query and return all rows
- * 
+ *
  * @param string $sql SQL with ? placeholders
  * @param string $types Type string (e.g., 'ssi' for string,string,int)
  * @param array $params Parameter values
@@ -49,34 +72,34 @@ $mysqli->set_charset($dbCharset);
 function dbQuery(string $sql, string $types = '', array $params = []): array
 {
     global $mysqli;
-    
+
     $stmt = $mysqli->prepare($sql);
     if (!$stmt) {
         error_log("Prepare failed: " . $mysqli->error);
         return [];
     }
-    
+
     if (!empty($types) && !empty($params)) {
         $stmt->bind_param($types, ...$params);
     }
-    
+
     $stmt->execute();
     $result = $stmt->get_result();
-    
+
     if ($result === false) {
         $stmt->close();
         return [];
     }
-    
+
     $rows = $result->fetch_all(MYSQLI_ASSOC);
     $stmt->close();
-    
+
     return $rows;
 }
 
 /**
  * Execute a prepared query that doesn't return rows (INSERT/UPDATE/DELETE)
- * 
+ *
  * @param string $sql SQL with ? placeholders
  * @param string $types Type string
  * @param array $params Parameter values
@@ -85,29 +108,29 @@ function dbQuery(string $sql, string $types = '', array $params = []): array
 function dbExecute(string $sql, string $types = '', array $params = []): bool
 {
     global $mysqli;
-    
+
     $stmt = $mysqli->prepare($sql);
     if (!$stmt) {
         error_log("Prepare failed: " . $mysqli->error);
         return false;
     }
-    
+
     if (!empty($types) && !empty($params)) {
         $stmt->bind_param($types, ...$params);
     }
-    
+
     $success = $stmt->execute();
     if (!$success) {
         error_log("Execute failed: " . $stmt->error);
     }
-    
+
     $stmt->close();
     return $success;
 }
 
 /**
  * Execute and get the last inserted ID
- * 
+ *
  * @param string $sql SQL with ? placeholders
  * @param string $types Type string
  * @param array $params Parameter values
@@ -116,27 +139,27 @@ function dbExecute(string $sql, string $types = '', array $params = []): bool
 function dbInsert(string $sql, string $types = '', array $params = [])
 {
     global $mysqli;
-    
+
     $stmt = $mysqli->prepare($sql);
     if (!$stmt) {
         error_log("Prepare failed: " . $mysqli->error);
         return false;
     }
-    
+
     if (!empty($types) && !empty($params)) {
         $stmt->bind_param($types, ...$params);
     }
-    
+
     $success = $stmt->execute();
     $insertId = $success ? $mysqli->insert_id : false;
     $stmt->close();
-    
+
     return $insertId;
 }
 
 /**
  * Get a single row
- * 
+ *
  * @param string $sql SQL with ? placeholders
  * @param string $types Type string
  * @param array $params Parameter values
@@ -150,7 +173,7 @@ function dbRow(string $sql, string $types = '', array $params = []): ?array
 
 /**
  * Get a single scalar value
- * 
+ *
  * @param string $sql SQL with ? placeholders
  * @param string $types Type string
  * @param array $params Parameter values
@@ -167,7 +190,7 @@ function dbValue(string $sql, string $types = '', array $params = [])
 
 /**
  * Escape string for safe use in SQL (fallback when prepared statements aren't feasible)
- * 
+ *
  * @param string $str Raw string
  * @return string Escaped string
  */
@@ -183,10 +206,12 @@ $tableSql = [
         id INT AUTO_INCREMENT PRIMARY KEY,
         session_code VARCHAR(50) NOT NULL UNIQUE,
         session_name VARCHAR(255) NOT NULL,
+        start_time TIME NULL,
+        end_time TIME NULL,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         expires_at TIMESTAMP NULL
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci",
-    
+
     "CREATE TABLE IF NOT EXISTS attendance (
         id INT AUTO_INCREMENT PRIMARY KEY,
         session_code VARCHAR(50) NOT NULL,
@@ -196,7 +221,7 @@ $tableSql = [
         INDEX idx_session (session_code),
         INDEX idx_student (student_id)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci",
-    
+
     "CREATE TABLE IF NOT EXISTS users (
         id INT AUTO_INCREMENT PRIMARY KEY,
         username VARCHAR(50) UNIQUE,
@@ -212,7 +237,6 @@ $tableSql = [
         INDEX idx_student_id (student_id)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci",
 
-    // LOCATION VERIFICATION TABLES
     "CREATE TABLE IF NOT EXISTS locations (
         id INT AUTO_INCREMENT PRIMARY KEY,
         name VARCHAR(255) NOT NULL,
@@ -282,4 +306,68 @@ $tableSql = [
 
 foreach ($tableSql as $sql) {
     $mysqli->query($sql);
+}
+
+// ── Schema migrations: add missing columns to existing tables ──
+$migrations = [
+    ["attendance", "session_code", "ALTER TABLE attendance ADD COLUMN session_code VARCHAR(50) NOT NULL DEFAULT '' AFTER id"],
+    ["attendance", "student_id", "ALTER TABLE attendance ADD COLUMN student_id VARCHAR(50) NOT NULL DEFAULT '' AFTER session_code"],
+    ["attendance", "student_name", "ALTER TABLE attendance ADD COLUMN student_name VARCHAR(255) AFTER student_id"],
+    ["attendance", "scan_time", "ALTER TABLE attendance ADD COLUMN scan_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP AFTER student_name"],
+
+    ["sessions", "session_code", "ALTER TABLE sessions ADD COLUMN session_code VARCHAR(50) NOT NULL DEFAULT '' AFTER id"],
+    ["sessions", "session_name", "ALTER TABLE sessions ADD COLUMN session_name VARCHAR(255) NOT NULL DEFAULT '' AFTER session_code"],
+    ["sessions", "created_at", "ALTER TABLE sessions ADD COLUMN created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP AFTER session_name"],
+    ["sessions", "expires_at", "ALTER TABLE sessions ADD COLUMN expires_at TIMESTAMP NULL AFTER created_at"],
+
+    ["users", "username", "ALTER TABLE users ADD COLUMN username VARCHAR(50) AFTER id"],
+    ["users", "email", "ALTER TABLE users ADD COLUMN email VARCHAR(100) AFTER username"],
+    ["users", "password_hash", "ALTER TABLE users ADD COLUMN password_hash VARCHAR(255) AFTER email"],
+    ["users", "full_name", "ALTER TABLE users ADD COLUMN full_name VARCHAR(100) AFTER password_hash"],
+    ["users", "student_id", "ALTER TABLE users ADD COLUMN student_id VARCHAR(50) AFTER full_name"],
+    ["users", "subject", "ALTER TABLE users ADD COLUMN subject VARCHAR(100) AFTER student_id"],
+    ["users", "role", "ALTER TABLE users ADD COLUMN role ENUM('student','teacher','admin') DEFAULT 'student' AFTER subject"],
+    ["users", "profile_picture", "ALTER TABLE users ADD COLUMN profile_picture VARCHAR(255) AFTER role"],
+    ["users", "created_at", "ALTER TABLE users ADD COLUMN created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP AFTER profile_picture"],
+];
+
+function columnExists(mysqli $mysqli, string $table, string $column): bool
+{
+    $result = $mysqli->query("SELECT COUNT(*) AS cnt FROM INFORMATION_SCHEMA.COLUMNS
+        WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = '$table' AND COLUMN_NAME = '$column'");
+    if ($result) {
+        $row = $result->fetch_assoc();
+        return $row && $row['cnt'] > 0;
+    }
+    return false;
+}
+
+function indexExists(mysqli $mysqli, string $table, string $indexName): bool
+{
+    $result = $mysqli->query("SELECT COUNT(*) AS cnt FROM INFORMATION_SCHEMA.STATISTICS
+        WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = '$table' AND INDEX_NAME = '$indexName'");
+    if ($result) {
+        $row = $result->fetch_assoc();
+        return $row && $row['cnt'] > 0;
+    }
+    return false;
+}
+
+foreach ($migrations as [$table, $column, $sql]) {
+    if (!columnExists($mysqli, $table, $column)) {
+        $mysqli->query($sql);
+    }
+}
+
+$indexes = [
+    ["attendance", "idx_session", "ALTER TABLE attendance ADD INDEX idx_session (session_code)"],
+    ["attendance", "idx_student", "ALTER TABLE attendance ADD INDEX idx_student (student_id)"],
+    ["users", "idx_role", "ALTER TABLE users ADD INDEX idx_role (role)"],
+    ["users", "idx_student_id", "ALTER TABLE users ADD INDEX idx_student_id (student_id)"],
+];
+
+foreach ($indexes as [$table, $indexName, $sql]) {
+    if (!indexExists($mysqli, $table, $indexName)) {
+        $mysqli->query($sql);
+    }
 }

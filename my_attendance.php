@@ -11,12 +11,10 @@
 require_once __DIR__ . '/config.php';
 require_once __DIR__ . '/db.php';
 
-requireAuth('student');
+requireStudent();
 
-$pageTitle = 'My Attendance | Attend Ease';
-$basePath = '';
-
-$studentId = $_SESSION['user']['student_id'] ?? $_SESSION['user']['username'];
+$user = getCurrentUser();
+$studentId = $user['id'] ?? $user['username'] ?? null;
 
 // Fetch attendance records
 $records = dbQuery(
@@ -33,6 +31,7 @@ $records = dbQuery(
 $totalScans = count($records);
 $uniqueSessions = count(array_unique(array_column($records, 'session_code')));
 
+$pageCss = 'student';
 include 'includes/header.php';
 ?>
 
@@ -44,15 +43,13 @@ include 'includes/header.php';
             <div class="card stat-card">
                 <div class="stat-number"><?php echo $totalScans; ?></div>
                 <div class="stat-label">Total Scans</div>
-            </div>
             <div class="card stat-card">
                 <div class="stat-number"><?php echo $uniqueSessions; ?></div>
                 <div class="stat-label">Sessions Attended</div>
-            </div>
         </div>
         
-        <div class="section">
-            <h2>Attendance Records</h2>
+        <div class="section" style="max-width: 900px; margin: 0 auto;">
+            <h2 style="text-align: center;">Attendance Records</h2>
             <?php if (count($records) > 0): ?>
                 <div class="table-responsive">
                     <table class="data-table">
@@ -75,10 +72,10 @@ include 'includes/header.php';
                     </table>
                 </div>
             <?php else: ?>
-                <div class="alert alert-info">No attendance records found. Scan a QR code to record your first attendance!</div>
+                <div class="alert alert-info" style="text-align: center; max-width: 600px; margin: 0 auto;">
+                    No attendance records found. Scan a QR code to record your first attendance!
+                </div>
             <?php endif; ?>
         </div>
-    </div>
 
 <?php include 'includes/footer.php'; ?>
-

@@ -13,9 +13,19 @@ if (!defined('ATTEND_EASE')) {
     define('ATTEND_EASE', true);
 }
 
-// Error reporting (disable in production)
-error_reporting(E_ALL);
-ini_set('display_errors', '1');
+// Environment: 'development' or 'production'
+define('APP_ENV', 'production');
+
+// Error reporting
+if (APP_ENV === 'development') {
+    error_reporting(E_ALL);
+    ini_set('display_errors', '1');
+} else {
+    error_reporting(E_ALL);
+    ini_set('display_errors', '0');
+    ini_set('log_errors', '1');
+    ini_set('error_log', __DIR__ . '/logs/php_errors.log');
+}
 
 // Session configuration
 if (session_status() === PHP_SESSION_NONE) {
@@ -59,7 +69,7 @@ if ($basePath === '.' || $basePath === '') {
 }
 
 // Strip known subdirectories to find project root
-$subdirs = ['/reports/', '/includes/', '/assets/', '/data/', '/api/', '/Registration/'];
+$subdirs = ['/reports/', '/includes/', '/assets/', '/data/', '/api/', '/Registration/', '/student/', '/teacher/'];
 foreach ($subdirs as $sub) {
     $pos = strpos($basePath, $sub);
     if ($pos !== false) {
@@ -216,6 +226,32 @@ function requireAdmin(): void
 }
 
 /**
+ * Require student role to access a page
+ * Redirects to home if not a student
+ */
+function requireStudent(): void
+{
+    requireLogin();
+    if (!isStudent()) {
+        header('Location: ' . BASE_URL . 'index.php');
+        exit;
+    }
+}
+
+/**
+ * Require teacher role to access a page
+ * Redirects to home if not a teacher
+ */
+function requireTeacher(): void
+{
+    requireLogin();
+    if (!isTeacher()) {
+        header('Location: ' . BASE_URL . 'index.php');
+        exit;
+    }
+}
+
+/**
  * Set user session after successful login
  * 
  * @param array $user User record from database
@@ -292,4 +328,3 @@ function auditLog(string $action, ?string $details = null, ?int $entityId = null
         error_log("Audit log failed: " . $e->getMessage());
     }
 }
-?>

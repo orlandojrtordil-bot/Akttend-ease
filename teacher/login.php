@@ -1,6 +1,6 @@
 <?php
 /**
- * Attend Ease - Login Page
+ * Attend Ease - Teacher Login
  *
  * @package AttendEase
  */
@@ -25,7 +25,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $error = 'Please fill in all fields.';
         } else {
             $user = dbRow(
-                "SELECT id, username, password_hash, full_name, role, email, subject FROM users WHERE username = ? OR email = ?",
+                "SELECT id, username, password_hash, full_name, role, email, subject FROM users WHERE (username = ? OR email = ?) AND role IN ('teacher', 'admin')",
                 "ss",
                 [$login, $login]
             );
@@ -36,21 +36,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 redirectBasedOnRole();
                 exit;
             } else {
-                $error = 'Invalid username/email or password.';
+                $error = 'Invalid teacher credentials. Please check your username/email and password.';
             }
         }
     }
 }
 
-$pageTitle = 'Log In | ' . APP_NAME;
+$pageTitle = 'Teacher Login | ' . APP_NAME;
 $basePath = '../';
 $pageCss = 'auth';
 include '../includes/header.php';
 ?>
     <div class="auth-container">
         <div class="auth-card">
-            <h1 class="auth-title">Welcome Back</h1>
-            <p class="auth-subtitle">Log in to your Attend Ease account</p>
+            <div style="text-align:center;margin-bottom:1.5rem;">
+                <div style="font-size:3rem;">&#127979;</div>
+                <h1 class="auth-title">Teacher Login</h1>
+                <p class="auth-subtitle">Access your admin dashboard</p>
+            </div>
 
             <?php if ($error): ?>
                 <div class="alert alert-error"><?php echo htmlspecialchars($error); ?></div>
@@ -67,14 +70,13 @@ include '../includes/header.php';
                     <label for="password">Password</label>
                     <input type="password" id="password" name="password" placeholder="Enter your password" required autocomplete="current-password">
                 </div>
-                <button type="submit" class="btn btn-admin btn-block">Log In</button>
+                <button type="submit" class="btn btn-admin btn-block">Log In as Teacher</button>
             </form>
 
             <div class="auth-footer">
-                <p>Don't have an account? <a href="<?php echo BASE_URL; ?>Registration/register.php">Sign Up</a></p>
+                <p>Don't have an account? <a href="<?php echo BASE_URL; ?>teacher/register.php">Sign Up as Teacher</a></p>
+                <p><a href="<?php echo BASE_URL; ?>student/login.php">I am a Student</a></p>
                 <p><a href="<?php echo BASE_URL; ?>index.php">Back to Home</a></p>
             </div>
-        </div>
     </div>
 <?php include '../includes/footer.php'; ?>
-

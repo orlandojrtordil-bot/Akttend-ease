@@ -9,31 +9,61 @@
 require_once __DIR__ . '/config.php';
 require_once __DIR__ . '/db.php';
 
-requireAuth('teacher');
+requireTeacher();
 
 $message = '';
 $error = '';
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['create_session'])) {
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!validateCsrfToken($_POST['csrf_token'] ?? '')) {
         $error = 'Invalid security token.';
     } else {
-        $sessionName = trim($_POST['session_name'] ?? '');
-        $sessionCode = trim($_POST['session_code'] ?? '');
-        
-        if (empty($sessionName) || empty($sessionCode)) {
-            $error = 'Please provide both session name and session code.';
-        } else {
-            $success = dbExecute(
-                "INSERT INTO sessions (session_code, session_name, expires_at) VALUES (?, ?, DATE_ADD(NOW(), INTERVAL ? HOUR))",
-                "ssi",
-                [$sessionCode, $sessionName, SESSION_EXPIRY_HOURS]
-            );
+        if (isset($_POST['create_session'])) {
+            $sessionName = trim($_POST['session_name'] ?? '');
+            $sessionCode = trim($_POST['session_code'] ?? '');
+            $startTime = trim($_POST['start_time'] ?? '');
+            $endTime = trim($_POST['end_time'] ?? '');
             
-            if ($success) {
-                $message = 'Session created successfully!';
+            if (empty($sessionName) || empty($sessionCode)) {
+                $error = 'Please provide both session name and session code.';
+            } elseif (!empty($startTime) && !empty($endTime) && strtotime($startTime) >= strtotime($endTime)) {
+                $error = 'End time must be after start time.';
             } else {
-                $error = 'Session code already exists or database error occurred.';
+                $success = dbExecute(
+                    "INSERT INTO sessions (session_code, session_name, start_time, end_time, expires_at) VALUES (?, ?, ?, ?, DATE_ADD(NOW(), INTERVAL ? HOUR))",
+                    "sssss",
+                    [$sessionCode, $sessionName, $startTime ?: null, $endTime ?: null, SESSION_EXPIRY_HOURS]
+                );
+                
+                if ($success) {
+                    $message = 'Session created successfully!';
+                } else {
+                    $error = 'Session code already exists or database error occurred.';
+                }
+            }
+        } elseif (isset($_POST['create_location'])) {
+            $name = trim($_POST['name'] ?? '');
+            $lat = floatval($_POST['latitude'] ?? 0);
+            $lng = floatval($_POST['longitude'] ?? 0);
+            $radius = intval($_POST['radius'] ?? 20);
+            $description = trim($_POST['description'] ?? '');
+            
+            if (empty($name) || $lat === 0 || $lng === 0) {
+                $error = 'Please provide a name and valid coordinates.';
+            } elseif ($lat < -90 || $lat > 90 || $lng < -180 || $lng > 180) {
+                $error = 'Invalid GPS coordinates.';
+            } else {
+                $result = dbInsert(
+                    "INSERT INTO locations (name, latitude, longitude, radius_meters, descripti   on, created_by) VALUES (?, ?, ?, ?, ?, ?)",
+                    "sddisi",
+                    [$name, $lat, $lng, $radius, $description, $_SESSION['user_id']]
+                );
+                if ($result) {
+                    $message = 'Location "' . htmlspecialchars($name) . '" created successfully.';
+                    auditLog('location_created', json_encode(['name' => $name, 'coords' => "$lat, $lng", 'radius' => $radius]), $result, 'location');
+                } else {
+                    $error = 'Failed to create location.';
+                }
             }
         }
     }
@@ -42,10 +72,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['create_session'])) {
 $sessions = dbQuery("SELECT * FROM sessions ORDER BY created_at DESC");
 
 $pageTitle = 'Admin Dashboard | ' . APP_NAME;
+$pageCss = 'teacher';
 include 'includes/header.php';
 ?>
     <div class="container">
-        <h1 class="page-title">Admin Dashboard</h1>
+        <!-- Formal Header -->
+        <div class="formal-header">
+            <div class="formal-title-section">
+                <h1>Admin Dashboard</h1>
+                <p class="formal-subtitle">Manage sessions, locations, and monitor attendance activity</p>
+            </div>
+        </div>
         
         <?php if ($message): ?>
             <div class="alert alert-success"><?php echo htmlspecialchars($message); ?></div>
@@ -54,9 +91,39 @@ include 'includes/header.php';
             <div class="alert alert-error"><?php echo htmlspecialchars($error); ?></div>
         <?php endif; ?>
 
-        <div class="dashboard-grid">
-            <div class="card">
-                <h2>Create New Session</h2>
+        <!-- Quick Actions -->
+        <div class="formal-actions-section">
+            <h2 class="section-title">Quick Navigation</h2>
+            <div class="actions-grid">
+                <div class="action-card">
+                    <div class="action-icon">&#128200;</div>
+                    <h4>View Reports</h4>
+                    <p>Review attendance records and export data for analysis.</p>
+                    <a href="reports/view.php" class="btn-formal-secondary">View Reports</a>
+                </div>
+                <div class="action-card">
+                    <div class="action-icon">&#128229;</div>
+                    <h4>Export Data</h4>
+                    <p>Download attendance data in various formats for record keeping.</p>
+                    <a href="reports/export.php" class="btn-formal-secondary">Export Data</a>
+                </div>
+                <div class="action-card">
+                    <div class="action-icon">&#127759;</div>
+                    <h4>Manage Locations</h4>
+                    <p>Review and manage existing geofenced check-in locations.</p>
+                    <a href="admin_locations.php" class="btn-formal-secondary">Manage Locations</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Creation Forms -->
+        <div class="dashboard-grid" style="margin-top: 3rem;">
+            <div class="card" style="border-top: 3px solid var(--midnight);">
+                <h2 style="display: flex; align-items: center; gap: 0.5rem;">
+                    <span style="font-size: 1.5rem;">&#128197;</span>
+                    Create New Session
+                </h2>
+                <p class="section-description" style="margin-bottom: 1.5rem;">Set up a new attendance session with a unique code for QR generation.</p>
                 <form method="POST" action="">
                     <?php echo csrfField(); ?>
                     <div class="form-group">
@@ -68,48 +135,108 @@ include 'includes/header.php';
                         <input type="text" id="session_code" name="session_code" placeholder="e.g., WEBDEV-2026-05" required>
                         <small class="form-hint">This code will be embedded in the QR code.</small>
                     </div>
-                    <button type="submit" name="create_session" class="btn btn-admin">Generate Session & QR Code</button>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="start_time">Start Time (Optional)</label>
+                            <input type="time" id="start_time" name="start_time">
+                            <small class="form-hint">When the session begins</small>
+                        </div>
+                        <div class="form-group">
+                            <label for="end_time">End Time (Optional)</label>
+                            <input type="time" id="end_time" name="end_time">
+                            <small class="form-hint">When the session ends</small>
+                        </div>
+                    </div>
+                    <button type="submit" name="create_session" class="btn btn-admin" style="width: 100%;">Generate Session & QR Code</button>
                 </form>
             </div>
 
-            <div class="card">
-                <h2>Quick Links</h2>
-                <ul class="link-list">
-                    <li><a href="reports/view.php" class="btn btn-secondary">View Attendance Records</a></li>
-                    <li><a href="reports/export.php" class="btn btn-secondary">Export Data</a></li>
-                </ul>
+            <div class="card" style="border-top: 3px solid var(--gold);">
+                <h2 style="display: flex; align-items: center; gap: 0.5rem;">
+                    <span style="font-size: 1.5rem;">&#128205;</span>
+                    Add New Location
+                </h2>
+                <p class="section-description" style="margin-bottom: 1.5rem;">Create a campus check-in zone for accurate attendance tracking.</p>
+                <form method="POST" action="">
+                    <?php echo csrfField(); ?>
+                    <div class="form-group">
+                        <label for="locName">Location Name</label>
+                        <input type="text" id="locName" name="name" placeholder="e.g., Main Campus - Building A" required>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="locLat">Latitude</label>
+                            <input type="number" id="locLat" name="latitude" step="any" placeholder="14.5995" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="locLng">Longitude</label>
+                            <input type="number" id="locLng" name="longitude" step="any" placeholder="120.9842" required>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="locRadius">Geofence Radius (meters)</label>
+                            <input type="number" id="locRadius" name="radius" value="20" min="5" max="500" required>
+                            <span class="form-hint">Recommended: 10-30m indoor, 50-100m outdoor.</span>
+                        </div>
+                        <div class="form-group">
+                            <label>Quick Actions</label>
+                            <button type="button" class="btn btn-secondary btn-block" onclick="getCurrentLocation()">
+                                &#128205; Use Current Location
+                            </button>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="locDesc">Description</label>
+                        <textarea id="locDesc" name="description" rows="2" placeholder="Room 301, 3rd Floor, CS Building"></textarea>
+                    </div>
+                    <button type="submit" name="create_location" class="btn btn-admin" style="width: 100%;">Create Location</button>
+                </form>
             </div>
         </div>
 
-        <div class="section">
-            <h2>Active Sessions</h2>
+        <!-- Active Sessions -->
+        <div class="formal-section" style="margin-top: 3rem;">
+            <h2 class="section-title">Active Sessions</h2>
+            <p class="section-description" style="margin-bottom: 1.5rem;">View and manage all created attendance sessions.</p>
+            
             <?php if (count($sessions) > 0): ?>
-                <table class="data-table">
-                    <thead>
-                        <tr>
-                            <th>Session Code</th>
-                            <th>Session Name</th>
-                            <th>Created</th>
-                            <th>Expires</th>
-                            <th>QR Code</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <?php foreach ($sessions as $session): ?>
+                <div class="academic-table-container">
+                    <table class="academic-data-table">
+                        <thead>
                             <tr>
-                                <td><strong><?php echo htmlspecialchars($session['session_code']); ?></strong></td>
-                                <td><?php echo htmlspecialchars($session['session_name']); ?></td>
-                                <td><?php echo htmlspecialchars($session['created_at']); ?></td>
-                                <td><?php echo htmlspecialchars($session['expires_at']); ?></td>
-                                <td>
-                                    <button class="btn btn-small" onclick="generateQR('<?php echo htmlspecialchars($session['session_code']); ?>', '<?php echo htmlspecialchars($session['session_name']); ?>')">Show QR</button>
-                                </td>
+                                <th>Session Code</th>
+                                <th>Session Name</th>
+                                <th>Start Time</th>
+                                <th>End Time</th>
+                                <th>Created</th>
+                                <th>Expires</th>
+                                <th>QR Code</th>
                             </tr>
-                        <?php endforeach; ?>
-                    </tbody>
-                </table>
+                        </thead>
+                        <tbody>
+                            <?php foreach ($sessions as $session): ?>
+                                <tr>
+                                    <td><span class="session-code"><?php echo htmlspecialchars($session['session_code']); ?></span></td>
+                                    <td><?php echo htmlspecialchars($session['session_name']); ?></td>
+                                    <td><?php echo $session['start_time'] ? htmlspecialchars($session['start_time']) : '<em class="text-muted">Not set</em>'; ?></td>
+                                    <td><?php echo $session['end_time'] ? htmlspecialchars($session['end_time']) : '<em class="text-muted">Not set</em>'; ?></td>
+                                    <td><?php echo date('M j, Y', strtotime($session['created_at'])); ?></td>
+                                    <td><?php echo date('M j, Y g:i A', strtotime($session['expires_at'])); ?></td>
+                                    <td>
+                                        <button class="btn btn-small btn-secondary" onclick="generateQR('<?php echo htmlspecialchars($session['session_code']); ?>', '<?php echo htmlspecialchars($session['session_name']); ?>')">Show QR</button>
+                                    </td>
+                                </tr>
+                            <?php endforeach; ?>
+                        </tbody>
+                    </table>
+                </div>
             <?php else: ?>
-                <div class="alert alert-info">No sessions found. Create a new session to get started.</div>
+                <div class="formal-notice">
+                    <div class="notice-icon">&#128197;</div>
+                    <h4>No Sessions Found</h4>
+                    <p>Create a new session to get started with attendance tracking.</p>
+                </div>
             <?php endif; ?>
         </div>
         
@@ -155,6 +282,23 @@ include 'includes/header.php';
                 modal.classList.add('hidden');
             }
         });
+
+        function getCurrentLocation() {
+            if (!navigator.geolocation) {
+                alert('Geolocation is not supported by your browser.');
+                return;
+            }
+            navigator.geolocation.getCurrentPosition(
+                function(pos) {
+                    document.getElementById('locLat').value = pos.coords.latitude.toFixed(6);
+                    document.getElementById('locLng').value = pos.coords.longitude.toFixed(6);
+                },
+                function(err) {
+                    alert('Error getting location: ' + err.message);
+                },
+                { enableHighAccuracy: true }
+            );
+        }
     </script>
 
 <?php include 'includes/footer.php'; ?>

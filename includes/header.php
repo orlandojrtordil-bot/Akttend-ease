@@ -27,18 +27,29 @@ $basePath  = $basePath ?? '';
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/style.css?v=<?php echo APP_VERSION; ?>">
+    <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/base.css?v=<?php echo APP_VERSION; ?>">
+<?php if (!empty($pageCss)): ?>
+    <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/<?php echo $pageCss; ?>.css?v=<?php echo APP_VERSION; ?>">
+<?php endif; ?>
+    <!-- Leaflet Maps -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
 </head>
 <body>
     <nav class="navbar" role="navigation" aria-label="Main navigation">
         <div class="nav-brand">
             <a href="<?php echo BASE_URL; ?>index.php"><?php echo APP_NAME; ?></a>
         </div>
-        <button class="nav-toggle" type="button" aria-label="Toggle navigation menu" aria-expanded="false" onclick="toggleNav()">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" />
-            </svg>
-        </button>
+        <div class="nav-actions">
+            <button class="theme-toggle" id="themeToggle" type="button" aria-label="Toggle light and dark mode" onclick="toggleTheme()">
+                <span id="themeIcon">🌙</span>
+            </button>
+            <button class="nav-toggle" type="button" aria-label="Toggle navigation menu" aria-expanded="false" onclick="toggleNav()">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+                </svg>
+            </button>
+        </div>
         <ul class="nav-links" id="nav-menu">
             <li><a href="<?php echo BASE_URL; ?>index.php">Home</a></li>
             
@@ -72,6 +83,30 @@ $basePath  = $basePath ?? '';
             const isOpen = menu.classList.toggle('open');
             toggle.setAttribute('aria-expanded', isOpen);
         }
+
+        function applyTheme(theme) {
+            const root = document.documentElement;
+            root.setAttribute('data-theme', theme);
+            localStorage.setItem('attendEaseTheme', theme);
+            document.getElementById('themeIcon').textContent = theme === 'dark' ? '☀️' : '🌙';
+        }
+
+        function toggleTheme() {
+            const current = document.documentElement.getAttribute('data-theme') || 'light';
+            applyTheme(current === 'dark' ? 'light' : 'dark');
+        }
+
+        function loadTheme() {
+            const saved = localStorage.getItem('attendEaseTheme');
+            const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+            const theme = saved || (prefersDark ? 'dark' : 'light');
+            applyTheme(theme);
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            loadTheme();
+        });
+
         document.addEventListener('click', function(e) {
             const nav = document.querySelector('.navbar');
             const menu = document.getElementById('nav-menu');

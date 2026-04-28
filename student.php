@@ -9,7 +9,7 @@
 require_once __DIR__ . '/config.php';
 require_once __DIR__ . '/db.php';
 
-requireAuth('student');
+requireStudent();
 
 $user = dbRow(
     "SELECT u.*, 
@@ -42,87 +42,118 @@ $avatarPath = !empty($user['profile_picture']) && file_exists(__DIR__ . '/' . $u
     : null;
 
 $pageTitle = 'Student Dashboard | ' . APP_NAME;
+$pageCss = 'student';
 include 'includes/header.php';
 ?>
     <div class="container">
-        <div class="student-header">
-            <div class="student-profile">
-                <div class="student-avatar">
+        <!-- Formal Header Section -->
+        <div class="formal-header">
+            <div class="formal-title-section">
+                <h1 class="formal-main-title">Student Attendance Portal</h1>
+                <p class="formal-subtitle">Academic Attendance Management System</p>
+            </div>
+        </div>
+
+        <!-- Student Profile Card -->
+        <div class="student-profile-card">
+            <div class="profile-header">
+                <div class="student-avatar-large">
                     <?php if ($avatarPath): ?>
-                        <img src="<?php echo htmlspecialchars($avatarPath); ?>" alt="Profile" class="student-avatar-img">
+                        <img src="<?php echo htmlspecialchars($avatarPath); ?>" alt="Student Profile" class="student-avatar-img">
                     <?php else: ?>
-                        <div class="student-avatar-placeholder"><?php echo htmlspecialchars($initials); ?></div>
+                        <div class="student-avatar-placeholder-large"><?php echo htmlspecialchars($initials); ?></div>
                     <?php endif; ?>
                 </div>
-                <div class="student-info">
-                    <h1><?php echo htmlspecialchars($user['full_name']); ?></h1>
-                    <p>
-                        <span class="badge badge-student">Student</span>
+                <div class="profile-details">
+                    <h2 class="student-name"><?php echo htmlspecialchars($user['full_name']); ?></h2>
+                    <div class="student-meta">
+                        <span class="badge badge-formal">Enrolled Student</span>
                         <?php if (!empty($user['student_id'])): ?>
-                            &nbsp;ID: <?php echo htmlspecialchars($user['student_id']); ?>
+                            <span class="student-id">Student ID: <?php echo htmlspecialchars($user['student_id']); ?></span>
                         <?php endif; ?>
-                    </p>
+                    </div>
+                </div>
+                <div class="profile-actions">
+                    <a href="profile.php" class="btn btn-formal-primary">Update Profile</a>
                 </div>
             </div>
-            <div class="student-actions">
-                <a href="profile.php" class="btn btn-secondary">Edit Profile</a>
+        </div>
+
+        <!-- Academic Statistics Dashboard -->
+        <div class="academic-stats-grid">
+            <div class="stat-card academic-stat-card">
+                <div class="stat-icon">📚</div>
+                <div class="stat-content">
+                    <div class="stat-number"><?php echo (int)$user['sessions_attended']; ?></div>
+                    <div class="stat-label">Sessions Attended</div>
+                    <div class="stat-description">Academic sessions completed</div>
+                </div>
+            </div>
+            <div class="stat-card academic-stat-card">
+                <div class="stat-icon">✅</div>
+                <div class="stat-content">
+                    <div class="stat-number"><?php echo (int)$user['attendance_count']; ?></div>
+                    <div class="stat-label">Total Check-ins</div>
+                    <div class="stat-description">Attendance records logged</div>
+                </div>
             </div>
         </div>
 
-        <div class="dashboard-grid stats-grid">
-            <div class="card stat-card">
-                <div class="stat-number"><?php echo (int)$user['sessions_attended']; ?></div>
-                <div class="stat-label">Sessions Attended</div>
-            </div>
-            <div class="card stat-card">
-                <div class="stat-number"><?php echo (int)$user['attendance_count']; ?></div>
-                <div class="stat-label">Total Scans</div>
-            </div>
-        </div>
-
-        <div class="card-container" style="margin-bottom: 2.5rem;">
-            <div class="card card-featured">
-                <h3>Scan QR Code</h3>
-                <p>Use your camera to scan a session QR code and record your attendance instantly.</p>
-                <a href="scan.php" class="btn btn-admin btn-block">Open Scanner</a>
-            </div>
-            <div class="card card-featured">
-                <h3>My Attendance</h3>
-                <p>View your complete attendance history across all sessions and dates.</p>
-                <a href="my_attendance.php" class="btn btn-secondary btn-block">View History</a>
+        <!-- Quick Actions Section -->
+        <div class="formal-actions-section">
+            <h3 class="section-title">Attendance Management</h3>
+            <div class="actions-grid">
+                <div class="action-card">
+                    <div class="action-icon">📱</div>
+                    <h4>Record Attendance</h4>
+                    <p>Scan QR codes to mark your presence in academic sessions.</p>
+                    <a href="scan.php" class="btn btn-formal-secondary">Open Scanner</a>
+                </div>
+                <div class="action-card">
+                    <div class="action-icon">📊</div>
+                    <h4>View Records</h4>
+                    <p>Access your complete attendance history and academic records.</p>
+                    <a href="my_attendance.php" class="btn btn-formal-secondary">View History</a>
+                </div>
             </div>
         </div>
 
-        <div class="section">
-            <h2>Recent Attendance</h2>
+        <!-- Recent Academic Activity -->
+        <div class="formal-section">
+            <h3 class="section-title">Recent Academic Activity</h3>
             <?php if (count($attendance) > 0): ?>
-                <div class="table-responsive">
-                    <table class="data-table">
+                <div class="academic-table-container">
+                    <table class="academic-data-table">
                         <thead>
                             <tr>
-                                <th>Session</th>
-                                <th>Session Name</th>
-                                <th>Date & Time</th>
+                                <th>Session Code</th>
+                                <th>Course/Session Name</th>
+                                <th>Check-in Date & Time</th>
+                                <th>Status</th>
                             </tr>
                         </thead>
                         <tbody>
                             <?php foreach ($attendance as $record): ?>
                                 <tr>
-                                    <td><code><?php echo htmlspecialchars($record['session_code']); ?></code></td>
+                                    <td><code class="session-code"><?php echo htmlspecialchars($record['session_code']); ?></code></td>
                                     <td><?php echo htmlspecialchars($record['session_name'] ?? 'N/A'); ?></td>
-                                    <td><?php echo htmlspecialchars($record['scan_time']); ?></td>
+                                    <td><?php echo htmlspecialchars(date('M j, Y g:i A', strtotime($record['scan_time']))); ?></td>
+                                    <td><span class="status-badge status-success">Present</span></td>
                                 </tr>
                             <?php endforeach; ?>
                         </tbody>
                     </table>
                 </div>
-                <div style="text-align: center; margin-top: 1rem;">
-                    <a href="my_attendance.php" class="btn btn-small btn-secondary">View All</a>
+                <div class="table-footer">
+                    <a href="my_attendance.php" class="btn btn-formal-outline">View Complete Academic Record</a>
                 </div>
             <?php else: ?>
-                <div class="alert alert-info">No attendance records yet. Use the scanner to record your first attendance.</div>
+                <div class="formal-notice">
+                    <div class="notice-icon">📝</div>
+                    <h4>No Attendance Records</h4>
+                    <p>Begin your academic journey by scanning QR codes for your first session attendance.</p>
+                    <a href="scan.php" class="btn btn-formal-primary">Start Recording Attendance</a>
+                </div>
             <?php endif; ?>
         </div>
-    </div>
 <?php include 'includes/footer.php'; ?>
-

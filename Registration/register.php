@@ -1,4 +1,4 @@
-<?php
+   <?php
 /**
  * Attend Ease - Registration Page
  *
@@ -98,6 +98,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 $pageTitle = 'Sign Up | ' . APP_NAME;
 $basePath = '../';
+$pageCss = 'auth';
 include '../includes/header.php';
 ?>
     <div class="auth-container">
@@ -181,23 +182,6 @@ include '../includes/header.php';
             </div>
         </div>
     </div>
-
-    <style>
-        .optional-label { font-weight: 400; color: var(--slate-navy); font-size: 0.75rem; text-transform: none; letter-spacing: 0; }
-        .role-option { cursor: pointer; user-select: none; flex: 1; display: flex; align-items: center; justify-content: center; gap: 8px; padding: 12px 15px; border: 1px solid var(--border-strong); border-radius: var(--radius); transition: var(--transition); background: var(--white); font-weight: 500; color: var(--slate-navy); }
-        .role-option input { display: none; }
-        .role-option.active { border-color: var(--midnight); background: var(--accent-light); color: var(--midnight); }
-        .password-strength { margin-top: 0.375rem; height: 4px; border-radius: 2px; background: var(--border); overflow: hidden; display: none; }
-        .password-strength.show { display: block; }
-        .password-strength-bar { height: 100%; width: 0; transition: width 0.3s ease, background 0.3s ease; }
-        .password-strength-bar.weak { width: 33%; background: #9b2226; }
-        .password-strength-bar.fair { width: 66%; background: #f39c12; }
-        .password-strength-bar.strong { width: 100%; background: #2d6a4f; }
-        .password-strength-text { font-size: 0.75rem; margin-top: 0.25rem; font-weight: 500; }
-        .password-match { margin-top: 0.375rem; font-size: 0.8125rem; min-height: 1.25rem; }
-        .password-match.match { color: #2d6a4f; }
-        .password-match.nomatch { color: #9b2226; }
-    </style>
 
     <script>
     (function() {

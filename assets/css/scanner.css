@@ -1,0 +1,99 @@
+/* ============================================
+   SCANNER PAGE (scan.php)
+   ============================================ */
+
+.scanner-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 2rem;
+    align-items: start;
+}
+
+.scanner-instructions {
+    color: var(--slate-navy);
+    margin-bottom: 1.25rem;
+    font-size: 0.9375rem;
+}
+
+#reader {
+    width: 100%;
+    max-width: 380px;
+    margin: 0 auto 1rem;
+    overflow: hidden;
+    border: 2px solid var(--border);
+}
+
+.scan-result {
+    padding: 1.5rem;
+    text-align: center;
+    margin-top: 1rem;
+    display: none;
+    border: 1px solid var(--border);
+}
+
+.scan-result:not(.hidden) {
+    display: block;
+}
+
+.scan-result.error {
+    background: #fdf2f2;
+    color: #9b2226;
+    border-left: 3px solid #9b2226;
+}
+
+.scan-result:not(.error) {
+    background: #f0f7f4;
+    color: #2d6a4f;
+    border-left: 3px solid #2d6a4f;
+}
+
+.result-icon {
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+}
+
+.manual-entry {
+    margin-top: 1.5rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--border);
+}
+
+.manual-entry h3 {
+    font-size: 1rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 0.75rem;
+    color: var(--text-primary);
+}
+
+.steps-list {
+    padding-left: 1.25rem;
+    color: var(--text-secondary);
+    margin-bottom: 1.5rem;
+    font-size: 0.9375rem;
+}
+
+.steps-list li {
+    margin-bottom: 0.5rem;
+}
+
+.link-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.link-list li {
+    margin-bottom: 0.75rem;
+}
+
+@media (max-width: 480px) {
+    .scanner-container {
+        gap: 1rem;
+    }
+    #reader {
+        max-width: 100%;
+    }
+}
+

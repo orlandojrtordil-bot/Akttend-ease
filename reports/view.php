@@ -66,6 +66,7 @@ $stats = dbRow("SELECT
     COUNT(DISTINCT student_id) as unique_students
     FROM attendance") ?? ['total_sessions' => 0, 'total_attendance' => 0, 'unique_students' => 0];
 
+$pageCss = 'teacher';
 include '../includes/header.php';
 ?>
 

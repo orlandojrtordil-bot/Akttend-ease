@@ -1,0 +1,246 @@
+/* ============================================
+   CHECK-IN PAGE (checkin.php)
+   ============================================ */
+
+@keyframes gpsPulse {
+    0% { width: 30%; opacity: 1; }
+    50% { width: 70%; opacity: 0.5; }
+    100% { width: 30%; opacity: 1; }
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+@keyframes pulse {
+    0% { opacity: 1; }
+    50% { opacity: 0.7; }
+    100% { opacity: 1; }
+}
+
+.check-item {
+    padding: 0.75rem 0;
+    border-bottom: 1px solid var(--border);
+    color: var(--slate-navy);
+    font-size: 0.9375rem;
+}
+
+.check-item:last-child {
+    border-bottom: none;
+}
+
+.check-pass { color: #2d6a4f !important; }
+.check-fail { color: #9b2226 !important; }
+
+.distance-badge {
+    display: inline-block;
+    padding: 0.25rem 0.75rem;
+    border-radius: var(--radius-sharp);
+    font-size: 0.8125rem;
+    font-weight: 600;
+    margin-top: 0.5rem;
+}
+
+.distance-ok { background: #f0f7f4; color: #2d6a4f; }
+.distance-far { background: #fdf2f2; color: #9b2226; }
+
+.spinner {
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    border: 2px solid var(--border);
+    border-top-color: var(--midnight);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    margin-right: 0.5rem;
+    vertical-align: middle;
+}
+
+.location-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.location-indicator {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.indicator-light {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: #6c757d;
+    transition: background-color 0.3s ease;
+}
+
+.indicator-light.in-range {
+    background: #28a745;
+    box-shadow: 0 0 8px rgba(40, 167, 69, 0.4);
+}
+
+.indicator-light.out-range {
+    background: #dc3545;
+    box-shadow: 0 0 8px rgba(220, 53, 69, 0.4);
+}
+
+.location-details {
+    background: white;
+    padding: 1rem;
+    border-radius: var(--radius);
+    margin-bottom: 1rem;
+}
+
+.location-coords, .location-target {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 0.5rem;
+    font-size: 0.875rem;
+}
+
+.location-coords {
+    color: var(--slate-navy);
+    font-family: monospace;
+}
+
+.location-target {
+    color: var(--midnight);
+    font-weight: 500;
+}
+
+.timer-section {
+    background: white;
+    padding: 1rem;
+    border-radius: var(--radius);
+    border: 2px solid #ffc107;
+}
+
+.timer-display {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+}
+
+.timer-label {
+    font-weight: 600;
+    color: var(--midnight);
+}
+
+.countdown {
+    font-family: monospace;
+    font-size: 1.25rem;
+    font-weight: bold;
+    color: #ffc107;
+    background: #fff3cd;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    min-width: 60px;
+    text-align: center;
+}
+
+.countdown.warning {
+    color: #dc3545;
+    background: #f8d7da;
+}
+
+.btn-cancel {
+    background: #dc3545;
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: var(--radius);
+    cursor: pointer;
+    font-weight: 600;
+    transition: background-color 0.2s;
+}
+
+.btn-cancel:hover {
+    background: #c82333;
+}
+
+.map-legend {
+    font-size: 0.875rem;
+}
+
+.map-legend div {
+    margin-bottom: 0.25rem;
+}
+
+.leaflet-popup-content-wrapper {
+    border-radius: var(--radius);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+}
+
+.leaflet-popup-tip {
+    background: white;
+}
+
+.leaflet-control-attribution {
+    font-size: 10px;
+    background: rgba(255,255,255,0.8);
+}
+
+.status-emoji {
+    font-size: 4rem;
+    margin-bottom: 0.5rem;
+    transition: all 0.3s ease;
+}
+
+.status-in-room { color: #28a745 !important; }
+.status-out-room { color: #dc3545 !important; }
+.status-initializing { color: #ffc107 !important; }
+
+.attendance-timer {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    border-radius: var(--radius);
+    padding: 1.5rem;
+    border: 2px solid #dee2e6;
+}
+
+.timer-container {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+}
+
+.timer-icon { font-size: 2rem; }
+.timer-content { flex: 1; text-align: center; }
+
+.attendance-countdown {
+    font-family: monospace;
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: #dc3545;
+    background: #f8d7da;
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    border: 2px solid #f5c6cb;
+    min-width: 100px;
+    display: inline-block;
+}
+
+.attendance-countdown.warning {
+    color: #721c24;
+    background: #f8d7da;
+    animation: pulse 1s infinite;
+}
+
+.btn-cancel-attendance {
+    background: #dc3545;
+    color: white;
+    border: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: var(--radius);
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 0.875rem;
+    transition: background-color 0.2s;
+}
+
+.btn-cancel-attendance:hover { background: #c82333; }
+

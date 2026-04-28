@@ -9,7 +9,7 @@
 require_once __DIR__ . '/config.php';
 require_once __DIR__ . '/db.php';
 
-requireAuth('student');
+requireStudent();
 
 $user = dbRow("SELECT * FROM users WHERE id = ?", "i", [$_SESSION['user_id']]);
 if (!$user) {
@@ -110,6 +110,7 @@ $avatarPath = !empty($user['profile_picture']) && file_exists(__DIR__ . '/' . $u
     : null;
 
 $pageTitle = 'Edit Profile | ' . APP_NAME;
+$pageCss = 'profile';
 include 'includes/header.php';
 ?>
     <div class="container">
@@ -183,4 +184,9 @@ include 'includes/header.php';
                     
                     <div class="form-actions">
                         <button type="submit" class="btn btn-admin">Save Changes</button>
-                        <
+                        <a href="student.php" class="btn btn-secondary">Cancel</a>
+                    </div>
+                </form>
+            </div>
+    </div>
+<?php include 'includes/footer.php'; ?>
