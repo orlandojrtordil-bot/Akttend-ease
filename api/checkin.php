@@ -23,6 +23,15 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 // Require authentication
 requireAuth();
 
+// Validate CSRF token
+$csrfToken = $_POST['csrf_token'] ?? '';
+if (!validateCsrfToken($csrfToken)) {
+    http_response_code(403);
+    echo json_encode(['success' => false, 'message' => 'Invalid CSRF token.']);
+    exit;
+}
+
+
 $user = getCurrentUser();
 if (!$user) {
     http_response_code(401);
@@ -111,7 +120,8 @@ $insertId = dbInsert(
         biometric_passed, biometric_method, mock_detected, vpn_detected,
         check_status, failure_reason
     ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
-    "iisddddssssiisss",
+    "iisddddssssiississ",
+
     [
         $user['id'], $locationId, $sessionName, $lat, $lng, $accuracy,
         $distance, $deviceUuid, $ipAddress, $userAgent,

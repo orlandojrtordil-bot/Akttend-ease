@@ -24,24 +24,38 @@ include 'includes/header.php';
             <p>Welcome to the next-generation attendance system. Choose your portal below to access GPS-verified check-in, QR scanning, or administrative controls.</p>
         </div>
 
-        <div class="card-container">
+<div class="card-container">
             <?php if (!isLoggedIn()): ?>
+            <div class="card card-featured">
+                <h3>&#128205; Quick Check-In</h3>
+                <p>Check in instantly with GPS location verification. No account required.</p>
+                <a href="checkin.php" class="btn btn-student btn-block">Check In Now</a>
+            </div>
+
+            <div class="card card-featured">
+                <h3>&#128197; Scan QR Code</h3>
+                <p>Scan session QR codes to record your attendance instantly.</p>
+                <a href="scan.php" class="btn btn-admin btn-block">Open Scanner</a>
+            </div>
+
             <div class="card card-featured">
                 <h3>&#127891; Student Access</h3>
                 <p>Log in to check in with GPS geofencing, scan QR codes, and track your attendance securely.</p>
-                <a href="student/login.php" class="btn btn-student btn-block">Log In as Student</a>
+                <a href="Registration/login.php" class="btn btn-student btn-block">Log In as Student</a>
                 <p style="margin-top:0.75rem;font-size:0.875rem;">
-                    <a href="student/register.php" style="color:var(--midnight);">New student? Sign up</a>
+                    <a href="Registration/register.php" style="color:var(--midnight);">New student? Sign up</a>
                 </p>
+
             </div>
 
             <div class="card card-featured">
                 <h3>&#127979; Teacher Access</h3>
                 <p>Administrators can manage geofenced locations, create sessions, and monitor attendance in real time.</p>
-                <a href="teacher/login.php" class="btn btn-admin btn-block">Log In as Teacher</a>
+                <a href="Registration/login.php" class="btn btn-admin btn-block">Log In as Teacher</a>
                 <p style="margin-top:0.75rem;font-size:0.875rem;">
-                    <a href="teacher/register.php" style="color:var(--midnight);">New teacher? Sign up</a>
+                    <a href="Registration/register.php" style="color:var(--midnight);">New teacher? Sign up</a>
                 </p>
+
             </div>
             <?php elseif (isStudent()): ?>
             <div class="card card-featured">
@@ -73,7 +87,8 @@ include 'includes/header.php';
         <?php if (!isLoggedIn()): ?>
         <div style="text-align: center; margin-top: 2.5rem;">
             <p style="color: var(--slate-navy); font-size: 0.9375rem;">
-                New to Attend Ease? <a href="student/register.php" style="color: var(--midnight); font-weight: 600;">Create a student account</a> or <a href="teacher/register.php" style="color: var(--midnight); font-weight: 600;">teacher account</a>
+                New to Attend Ease? <a href="Registration/register.php" style="color: var(--midnight); font-weight: 600;">Create an account</a>
+
             </p>
         </div>
         <?php endif; ?>
@@ -112,6 +127,6 @@ include 'includes/header.php';
                     <h4 style="margin:0 0 0.5rem;color:var(--primary-color);">Audit Logging</h4>
                     <p style="font-size:0.875rem;color:var(--text-muted);margin:0;">Every attempt logged with GPS coords, device ID, and timestamp.</p>
                 </div>
-        </div>
+          </div>
 
 <?php include 'includes/footer.php'; ?>

@@ -1,14 +1,21 @@
-# CSS Separation by Page - TODO
+# Orlando Updates TODO
 
-- [ ] Step 1: Create `assets/css/base.css` (shared styles)
-- [ ] Step 2: Create `assets/css/home.css` (index.php)
-- [ ] Step 3: Create `assets/css/auth.css` (login/register pages)
-- [ ] Step 4: Create `assets/css/dashboard.css` (student, admin, reports, locations, my_attendance)
-- [ ] Step 5: Create `assets/css/scanner.css` (scan.php)
-- [ ] Step 6: Create `assets/css/profile.css` (profile.php)
-- [ ] Step 7: Create `assets/css/checkin.css` (checkin.php inline styles)
-- [ ] Step 8: Update `includes/header.php` to load base.css + conditional page CSS
-- [ ] Step 9: Set `$pageCss` variable on all 15 PHP pages
-- [ ] Step 10: Remove inline `<style>` blocks from `checkin.php` and `Registration/register.php`
-- [ ] Step 11: Verify no broken references
+Orlando branch updates for Akttend-ease: modernize codebase, clean tests, improve features/security.
 
+## Steps
+
+- [ ] 1. Install GitHub CLI (`winget install GitHub.cli`)
+- [ ] 2. Git stash current changes: `git -C Akttend-ease stash push -m "pre-orlando"`
+- [ ] 3. Create & switch branch: `git -C Akttend-ease checkout -b Orlando/attendance-updates`
+- [ ] 4. Remove test/debug files (test_*.php, diag.php, phpinfo.php, etc.)
+- [ ] 5. Update core: config.php (rate limit, password policy), db.php (PDO)
+- [ ] 6. Improve auth/UI: login/register role selector, header/footer modular
+- [ ] 7. Enhance checkin/scan: hybrid GPS+QR, error handling, JS offline
+- [ ] 8. Admin/student: session delete, attendance %, reports PDF
+- [ ] 9. CSS/JS modularize, add dark mode/PWA
+- [ ] 10. Fix composer.json name, add LICENSE, .gitignore
+- [ ] 11. Test app: `cd Akttend-ease && php -S localhost:8000`
+- [ ] 12. `git add . && git commit -m "Orlando updates: full codebase modernization" && git push origin Orlando/attendance-updates`
+- [ ] 13. `gh pr create --title "Orlando Updates" --body "Modernized all files per plan"`
+
+Progress: Starting step 1.

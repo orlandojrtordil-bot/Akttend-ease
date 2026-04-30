@@ -1,0 +1,21 @@
+{
+  "name": "orlandojrtordil-bot/attend-ease",
+  "description": "GPS Geofencing Attendance System",
+  "type": "project",
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "Attend Ease Team",
+      "email": "team@example.com"
+    }
+  ],
+  "require": {},
+  "autoload": {
+    "psr-4": {
+      "App\\": "src/"
+    }
+  },
+  "scripts": {
+    "start": "php -S localhost:8000 -t public"
+  }
+}

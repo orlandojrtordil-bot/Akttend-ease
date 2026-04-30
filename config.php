@@ -52,6 +52,50 @@ define('RECORDS_PER_PAGE', 25);
 // Security settings
 define('CSRF_TOKEN_NAME', 'csrf_token');
 
+// Rate limiting (requests per minute)
+define('RATE_LIMIT_MAX_REQUESTS', 60);
+define('RATE_LIMIT_WINDOW_SECONDS', 60);
+
+// Password policy
+define('PASSWORD_MIN_LENGTH', 8);
+define('PASSWORD_REQUIRE_UPPERCASE', true);
+define('PASSWORD_REQUIRE_LOWERCASE', true);
+define('PASSWORD_REQUIRE_NUMBER', true);
+define('PASSWORD_REQUIRE_SPECIAL', false);
+
+/**
+ * Validate password against policy
+ * 
+ * @param string $password Password to validate
+ * @return array ['valid' => bool, 'errors' => string[]]
+ */
+function validatePassword(string $password): array
+{
+    $errors = [];
+    
+    if (strlen($password) < PASSWORD_MIN_LENGTH) {
+        $errors[] = 'Password must be at least ' . PASSWORD_MIN_LENGTH . ' characters';
+    }
+    
+    if (PASSWORD_REQUIRE_UPPERCASE && !preg_match('/[A-Z]/', $password)) {
+        $errors[] = 'Password must contain at least one uppercase letter';
+    }
+    
+    if (PASSWORD_REQUIRE_LOWERCASE && !preg_match('/[a-z]/', $password)) {
+        $errors[] = 'Password must contain at least one lowercase letter';
+    }
+    
+    if (PASSWORD_REQUIRE_NUMBER && !preg_match('/[0-9]/', $password)) {
+        $errors[] = 'Password must contain at least one number';
+    }
+    
+    if (PASSWORD_REQUIRE_SPECIAL && !preg_match('/[!@#$%^&*(),.?":{}|<>]/', $password)) {
+        $errors[] = 'Password must contain at least one special character';
+    }
+    
+    return ['valid' => empty($errors), 'errors' => $errors];
+}
+
 // Base URL calculation - always points to project root
 $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
 $host = $_SERVER['HTTP_HOST'] ?? 'localhost';
