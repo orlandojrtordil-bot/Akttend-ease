@@ -15,12 +15,13 @@ if (!defined('ATTEND_EASE')) {
 
 require_once __DIR__ . '/config.php';
 
-// Database credentials
-$dbHost = 'localhost';
-$dbName = 'attend_ease';
-$dbUser = 'root';
-$dbPass = '';
-$dbCharset = 'utf8mb4';
+// Database credentials - use constants from config.php
+$dbHost = DB_HOST;
+$dbName = DB_NAME;
+$dbUser = DB_USER;
+$dbPass = DB_PASS;
+$dbCharset = DB_CHARSET;
+
 
 // Create MySQLi connection
 $mysqli = new mysqli($dbHost, $dbUser, $dbPass, $dbName);
@@ -317,8 +318,11 @@ $migrations = [
 
     ["sessions", "session_code", "ALTER TABLE sessions ADD COLUMN session_code VARCHAR(50) NOT NULL DEFAULT '' AFTER id"],
     ["sessions", "session_name", "ALTER TABLE sessions ADD COLUMN session_name VARCHAR(255) NOT NULL DEFAULT '' AFTER session_code"],
-    ["sessions", "created_at", "ALTER TABLE sessions ADD COLUMN created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP AFTER session_name"],
+    ["sessions", "start_time", "ALTER TABLE sessions ADD COLUMN start_time TIME NULL AFTER session_name"],
+    ["sessions", "end_time", "ALTER TABLE sessions ADD COLUMN end_time TIME NULL AFTER start_time"],
+    ["sessions", "created_at", "ALTER TABLE sessions ADD COLUMN created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP AFTER end_time"],
     ["sessions", "expires_at", "ALTER TABLE sessions ADD COLUMN expires_at TIMESTAMP NULL AFTER created_at"],
+
 
     ["users", "username", "ALTER TABLE users ADD COLUMN username VARCHAR(50) AFTER id"],
     ["users", "email", "ALTER TABLE users ADD COLUMN email VARCHAR(100) AFTER username"],
@@ -333,25 +337,36 @@ $migrations = [
 
 function columnExists(mysqli $mysqli, string $table, string $column): bool
 {
-    $result = $mysqli->query("SELECT COUNT(*) AS cnt FROM INFORMATION_SCHEMA.COLUMNS
-        WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = '$table' AND COLUMN_NAME = '$column'");
+    $stmt = $mysqli->prepare("SELECT COUNT(*) AS cnt FROM INFORMATION_SCHEMA.COLUMNS
+        WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ? AND COLUMN_NAME = ?");
+    $stmt->bind_param("ss", $table, $column);
+    $stmt->execute();
+    $result = $stmt->get_result();
     if ($result) {
         $row = $result->fetch_assoc();
+        $stmt->close();
         return $row && $row['cnt'] > 0;
     }
+    $stmt->close();
     return false;
 }
 
 function indexExists(mysqli $mysqli, string $table, string $indexName): bool
 {
-    $result = $mysqli->query("SELECT COUNT(*) AS cnt FROM INFORMATION_SCHEMA.STATISTICS
-        WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = '$table' AND INDEX_NAME = '$indexName'");
+    $stmt = $mysqli->prepare("SELECT COUNT(*) AS cnt FROM INFORMATION_SCHEMA.STATISTICS
+        WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ? AND INDEX_NAME = ?");
+    $stmt->bind_param("ss", $table, $indexName);
+    $stmt->execute();
+    $result = $stmt->get_result();
     if ($result) {
         $row = $result->fetch_assoc();
+        $stmt->close();
         return $row && $row['cnt'] > 0;
     }
+    $stmt->close();
     return false;
 }
+
 
 foreach ($migrations as [$table, $column, $sql]) {
     if (!columnExists($mysqli, $table, $column)) {

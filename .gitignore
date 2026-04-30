@@ -1,0 +1,58 @@
+# Dependencies
+/vendor/
+composer.lock
+
+# Logs
+/logs/
+*.log
+php_errors.log
+
+# IDE & Editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Environment & Config
+.env
+.env.local
+.env.*.local
+
+# Temporary files
+/tmp/
+/temp/
+*.tmp
+*.cache
+
+# Test & debug files (ad-hoc scripts)
+/test_*.php
+/debug_*.php
+/temp_*.php
+/min_*.php
+/st[0-9].php
+/iso_test.php
+/diag.php
+/phpinfo.php
+/webtest.php
+/runtest.php
+/single_test.php
+/db_viewer.php
+/check_error.php
+/get_error.php
+
+# Data files (generated)
+/data/*.json
+!/data/.gitkeep
+
+# Uploads (user-generated content)
+/assets/images/profiles/*
+!/assets/images/profiles/.gitkeep
+
+# Keep empty directory placeholders
+!.gitkeep

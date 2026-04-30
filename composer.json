@@ -1,0 +1,23 @@
+{
+    "name": "attend-ease/core",
+    "description": "Attend Ease Core Application - Location-Verified Attendance System with GPS Geofencing & Biometric Security",
+    "type": "project",
+    "license": "MIT",
+    "keywords": ["attendance", "gps", "geofencing", "qr-code", "biometric", "php"],
+    "require": {
+        "php": ">=7.4",
+        "ext-mysqli": "*",
+        "ext-pdo": "*",
+        "ext-session": "*",
+        "ext-json": "*",
+        "ext-openssl": "*"
+    },
+    "config": {
+        "optimize-autoloader": true,
+        "sort-packages": true
+    },
+    "scripts": {
+        "serve": "php -S localhost:8000",
+        "test": "echo 'Run php -l on files to check syntax'"
+    }
+}

@@ -312,11 +312,15 @@ function redirectBasedOnRole(): void
  */
 function auditLog(string $action, ?string $details = null, ?int $entityId = null, ?string $entityType = null): void
 {
+    static $pdo = null;
+    
     try {
-        $pdo = new PDO("mysql:host=" . DB_HOST . ";dbname=" . DB_NAME . ";charset=" . DB_CHARSET, DB_USER, DB_PASS, [
-            PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-            PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC
-        ]);
+        if ($pdo === null) {
+            $pdo = new PDO("mysql:host=" . DB_HOST . ";dbname=" . DB_NAME . ";charset=" . DB_CHARSET, DB_USER, DB_PASS, [
+                PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+                PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC
+            ]);
+        }
         
         $userId = $_SESSION['user_id'] ?? null;
         $ip = $_SERVER['REMOTE_ADDR'] ?? null;
@@ -326,5 +330,6 @@ function auditLog(string $action, ?string $details = null, ?int $entityId = null
         $stmt->execute([$userId, $action, $entityType, $entityId, $ip, $ua, $details]);
     } catch (PDOException $e) {
         error_log("Audit log failed: " . $e->getMessage());
+        $pdo = null; // Reset connection on failure
     }
 }
